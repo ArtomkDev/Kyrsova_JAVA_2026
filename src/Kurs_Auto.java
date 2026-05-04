@@ -3,8 +3,8 @@ package kurs_auto;
 import java.util.*;
 
 class ServiceDepartment {
-    private String name_dep;
-    private LinkedHashMap<String, Integer> price = new LinkedHashMap<>();
+    private String name_dep; // назва відділення
+    private LinkedHashMap<String, Integer> price = new LinkedHashMap<>(); // прайс цін
 
     ServiceDepartment() {
     }
@@ -13,15 +13,15 @@ class ServiceDepartment {
         name_dep = name;
     }
 
-    protected String getName() {
+    protected String getName() { // повернути назву відділення
         return name_dep;
     }
 
-    protected void setNameDep(String name) {
+    protected void setNameDep(String name) { // встановити назву відділення
         name_dep = name;
     }
 
-    protected void setPrice(String[] service, int[] cost) {
+    protected void setPrice(String[] service, int[] cost) { // встановлення прайсу
         price.clear();
         if (service.length == cost.length) {
             for (int i = 0; i < service.length; i++) {
@@ -30,20 +30,21 @@ class ServiceDepartment {
         }
     }
 
-    protected LinkedHashMap<String, Integer> getPrice() {
+    protected LinkedHashMap<String, Integer> getPrice() { // повертає прайс цін та послуг
         return price;
     }
 }
 
 class AutoService extends ServiceDepartment {
-    private String name;
-    private int num_of_dep;
-    protected ArrayList<ServiceDepartment> departments = new ArrayList<>();
-    private String client_name;
-    private int choicedep;
-    private int choiceservice;
+    private String name; // назва автосервісу
+    private int num_of_dep; // к-сть відділень
+    protected ArrayList<ServiceDepartment> departments = new ArrayList<>(); // список відділень, які є в автосервісі
+    private String client_name; // ім'я клієнта
+    private int choicedep; // вибір відділення
+    private int choiceservice; // вибір послуги
 
-    AutoService() {
+    // Клієнт
+    AutoService() { // по замовчуванню (шаблон для клієнта)
         departments.clear();
         name = "АвтоПлюс";
         String[] dep = { "Шиномонтаж", "Діагностика", "Моторист" };
@@ -65,6 +66,7 @@ class AutoService extends ServiceDepartment {
         departments.get(2).setPrice(mot, motP);
     }
 
+    // Менеджер
     AutoService(String n, int num) {
         name = n;
         num_of_dep = num;
@@ -74,7 +76,7 @@ class AutoService extends ServiceDepartment {
         return choicedep;
     }
 
-    protected String getStrChoiceService() {
+    protected String getStrChoiceService() { // повертає обрану послугу
         LinkedHashMap<String, Integer> price_dep = departments.get(choicedep - 1).getPrice();
         int a = 0;
         String str = "";
@@ -89,7 +91,7 @@ class AutoService extends ServiceDepartment {
         return str;
     }
 
-    protected int getPrChoiceService() {
+    protected int getPrChoiceService() { // повертає ціну на обрану послугу
         LinkedHashMap<String, Integer> price_dep = departments.get(choicedep - 1).getPrice();
         int a = 0, cost = 0;
         for (Map.Entry<String, Integer> entry : price_dep.entrySet()) {
@@ -107,7 +109,7 @@ class AutoService extends ServiceDepartment {
         return choiceservice;
     }
 
-    protected void setChoiceDep() {
+    protected void setChoiceDep() { // вибір відділення
         Scanner in = new Scanner(System.in, "UTF-8");
         System.out.println("\nШановний(а) " + client_name + ", оберіть відділення:");
         for (int i = 0; i < departments.size(); i++) {
@@ -124,7 +126,7 @@ class AutoService extends ServiceDepartment {
         }
     }
 
-    protected void setServiceChoice() {
+    protected void setServiceChoice() { // вибір послуги
         Scanner in = new Scanner(System.in, "UTF-8");
         System.out.println("\nОберіть послугу:");
         LinkedHashMap<String, Integer> price_dep = departments.get(choicedep - 1).getPrice();
@@ -160,7 +162,7 @@ class AutoService extends ServiceDepartment {
         return name;
     }
 
-    protected void setService_Departments() {
+    protected void setService_Departments() { // створення нових відділень, відповідно їх к-сті
         departments.clear();
         System.out.println("\n===== НАЛАШТУВАННЯ ВІДДІЛЕНЬ =====");
         for (int i = 0; i < num_of_dep; i++) {
@@ -168,7 +170,7 @@ class AutoService extends ServiceDepartment {
         }
     }
 
-    private ServiceDepartment newDep(int index) {
+    private ServiceDepartment newDep(int index) { // створити нове відділення
         Scanner in = new Scanner(System.in, "UTF-8");
         System.out.println("\n--- Відділення [" + index + "] ---");
         System.out.print("Назва відділення: ");
@@ -196,23 +198,23 @@ class AutoService extends ServiceDepartment {
 }
 
 class Test {
-    protected static ArrayList<String> info_manager = new ArrayList<>();
-    protected static ArrayList<String> info_client = new ArrayList<>();
-    protected static AutoService auto = new AutoService();
+    protected static ArrayList<String> info_manager = new ArrayList<>(); // колекція для збереження внесених даних менеджера
+    protected static ArrayList<String> info_client = new ArrayList<>(); // колекція для збереження внесених даних клієнта
+    protected static AutoService auto = new AutoService(); // об'єкт для тестування
 
-    protected static void testing_manager() {
+    protected static void testing_manager() { // режим менеджера
         Scanner in = new Scanner(System.in, "UTF-8");
         System.out.print("Введіть назву автосервісу: ");
         String rez = in.nextLine();
         System.out.print("Введіть к-сть відділень: ");
         int num = in.nextInt();
         auto = new AutoService(rez, num);
-        auto.setService_Departments();
-        InputDataManager();
-        Demonst(info_manager);
+        auto.setService_Departments(); // встановити відділення
+        InputDataManager(); // зберегти введені дані менеджера в колекції
+        Demonst(info_manager); // вивести збережені дані
     }
 
-    protected static void InputDataManager() {
+    protected static void InputDataManager() { // заповнення колекції для ролі менеджера
         info_manager.clear();
         String[] info = { "Назва автосервісу: ", "\nКількість відділень: ", "\nСписок відділень та прайс: \n" };
         info_manager.add(info[0]);
@@ -231,7 +233,7 @@ class Test {
         }
     }
 
-    protected static void Demonst(ArrayList<String> info) {
+    protected static void Demonst(ArrayList<String> info) { // виведення на екран заповненої колекції
         System.out.println("\n-----Демонстрація введених данних-----");
         System.out.println("------\t------\t------\t------\t------");
         for (int i = 0; i < info.size(); i++) {
@@ -240,7 +242,7 @@ class Test {
         System.out.println("\n------\t------\t------\t------\t------");
     }
 
-    protected static void testing_client() {
+    protected static void testing_client() { // режим клієнта
         Scanner in = new Scanner(System.in, "UTF-8");
         auto = new AutoService();
         System.out.println("Вас вітає автосервіс " + auto.getNameAuto());
@@ -254,7 +256,7 @@ class Test {
         Demonst(info_client);
     }
 
-    protected static void DataInputClient() {
+    protected static void DataInputClient() { // зберігає в колекції дані, введені клієнтом
         info_client.clear();
         String[] info = { "Ім'я клієнта: ", "\nВибір відділення: ", "\nВибір послуги: ", "\nСума розрахунку: " };
         info_client.add(info[0]);
@@ -267,7 +269,7 @@ class Test {
         info_client.add(Integer.toString(auto.getPrChoiceService()));
     }
 
-    protected static int role() {
+    protected static int role() { // вибір режиму
         Scanner in = new Scanner(System.in);
         System.out.println("Оберіть роль для входу:\n 1 - Клієнт  2 - Менеджер");
         int role = in.nextInt(), rez = 0;
@@ -283,7 +285,7 @@ class Test {
 
 public class Kurs_Auto {
     public static void main(String[] args) {
-        int user = Test.role();
+        int user = Test.role(); // вибір режиму користувача
         if (user == 2) {
             Test.testing_manager();
         } else {
