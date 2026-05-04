@@ -1,15 +1,19 @@
 @echo off
 chcp 65001 >nul
-echo Компіляція Main.java...
+echo Compiling Main.java...
 if not exist "bin" mkdir bin
 javac -d bin src\Main.java
-if %ERRORLEVEL% equ 0 (
-    echo Компіляція успішна! Запускаємо програму...
-    echo ----------------------------------------
-    java -cp bin Main
-    echo ----------------------------------------
-    echo Програма завершила роботу.
-) else (
-    echo Помилка компіляції!
-)
+if errorlevel 1 goto compile_error
+
+echo Compilation successful! Starting program...
+echo ----------------------------------------
+java -cp bin Main
+echo ----------------------------------------
+echo Program finished.
+goto end
+
+:compile_error
+echo Compilation failed!
+
+:end
 pause
