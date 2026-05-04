@@ -109,14 +109,15 @@ class AutoService extends ServiceDepartment {
 
     protected void setChoiceDep() {
         Scanner in = new Scanner(System.in, "UTF-8");
-        System.out.println(client_name + ", оберіть номер відділення, в якому хочете замовити послугу: ");
+        System.out.println("\nШановний(а) " + client_name + ", оберіть відділення:");
         for (int i = 0; i < departments.size(); i++) {
-            System.out.println((i + 1) + " - " + departments.get(i).getName());
+            System.out.println("  [" + (i + 1) + "] " + departments.get(i).getName());
         }
+        System.out.print("Ваш вибір (введіть цифру): ");
         int choice = in.nextInt();
         choicedep = 0;
         if (choice < 1 || choice > departments.size()) {
-            System.out.println("Uncorrect choice!!!");
+            System.out.println("Некоректний вибір! Спробуйте ще раз.");
             setChoiceDep();
         } else {
             choicedep = choice;
@@ -125,17 +126,18 @@ class AutoService extends ServiceDepartment {
 
     protected void setServiceChoice() {
         Scanner in = new Scanner(System.in, "UTF-8");
-        System.out.println(client_name + ", оберіть номер послуги, яку хочете замовити: ");
+        System.out.println("\nОберіть послугу:");
         LinkedHashMap<String, Integer> price_dep = departments.get(choicedep - 1).getPrice();
         int i = 1;
         for (Map.Entry<String, Integer> entry : price_dep.entrySet()) {
-            System.out.println(i + " - " + entry.getKey() + " - " + entry.getValue());
+            System.out.println("  [" + i + "] " + entry.getKey() + " ........... " + entry.getValue() + " грн");
             i++;
         }
+        System.out.print("Ваш вибір (введіть цифру): ");
         int choice = in.nextInt();
         choiceservice = 0;
         if (choice < 1 || choice > price_dep.size()) {
-            System.out.println("Uncorrect choice!!!");
+            System.out.println("Некоректний вибір! Спробуйте ще раз.");
             setServiceChoice();
         } else {
             choiceservice = choice;
@@ -160,15 +162,16 @@ class AutoService extends ServiceDepartment {
 
     protected void setService_Departments() {
         departments.clear();
-        System.out.println("-----Визначаємо відділення-----");
+        System.out.println("\n===== НАЛАШТУВАННЯ ВІДДІЛЕНЬ =====");
         for (int i = 0; i < num_of_dep; i++) {
-            departments.add(newDep());
+            departments.add(newDep(i + 1));
         }
     }
 
-    private ServiceDepartment newDep() {
+    private ServiceDepartment newDep(int index) {
         Scanner in = new Scanner(System.in, "UTF-8");
-        System.out.print("Назва відділення : ");
+        System.out.println("\n--- Відділення [" + index + "] ---");
+        System.out.print("Назва відділення: ");
         String named = in.nextLine();
         ServiceDepartment dep = new ServiceDepartment(named);
 
@@ -180,9 +183,9 @@ class AutoService extends ServiceDepartment {
         int[] prices = new int[count];
 
         for (int i = 0; i < count; i++) {
-            System.out.print("Назва послуги " + (i + 1) + ": ");
+            System.out.print("   > Назва послуги " + (i + 1) + ": ");
             services[i] = in.nextLine();
-            System.out.print("Ціна послуги " + (i + 1) + " (грн): ");
+            System.out.print("   > Ціна послуги " + (i + 1) + " (грн): ");
             prices[i] = in.nextInt();
             in.nextLine();
         }
@@ -199,7 +202,7 @@ class Test {
 
     protected static void testing_manager() {
         Scanner in = new Scanner(System.in, "UTF-8");
-        System.out.print("Введіть назву автосервісу : ");
+        System.out.print("Введіть назву автосервісу: ");
         String rez = in.nextLine();
         System.out.print("Введіть к-сть відділень: ");
         int num = in.nextInt();
@@ -229,7 +232,7 @@ class Test {
     }
 
     protected static void Demonst(ArrayList<String> info) {
-        System.out.println("-----Демонстрація введених данних-----");
+        System.out.println("\n-----Демонстрація введених данних-----");
         System.out.println("------\t------\t------\t------\t------");
         for (int i = 0; i < info.size(); i++) {
             System.out.print(info.get(i));
@@ -246,7 +249,7 @@ class Test {
         auto.setNameClient(name);
         auto.setChoiceDep();
         auto.setServiceChoice();
-        System.out.println("Дякуємо за замовлення!!!");
+        System.out.println("\nДякуємо за замовлення! Формуємо чек...");
         DataInputClient();
         Demonst(info_client);
     }
@@ -266,10 +269,10 @@ class Test {
 
     protected static int role() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Оберіть роль для входу:\n 1 - Клієнт 2 - Менеджер");
+        System.out.println("Оберіть роль для входу:\n 1 - Клієнт  2 - Менеджер");
         int role = in.nextInt(), rez = 0;
         if (role != 1 && role != 2) {
-            System.out.println("Uncorrect choice!!!");
+            System.out.println("Некоректний вибір!");
             rez = role();
         } else {
             rez = role;
