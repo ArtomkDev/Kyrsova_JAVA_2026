@@ -2,7 +2,7 @@
 chcp 65001 >nul
 echo Compiling Main.java...
 if not exist "bin" mkdir bin
-javac -d bin src\Kurs_Auto.java
+javac -d bin src\kurs_auto\Kurs_Auto.java
 if errorlevel 1 goto compile_error
 
 echo Compilation successful! Starting program...

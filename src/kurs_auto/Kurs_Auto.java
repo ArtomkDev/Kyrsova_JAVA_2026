@@ -1,295 +1,506 @@
 package kurs_auto;
 
+import java.io.*;
 import java.util.*;
 
-class ServiceDepartment {
-    private String name_dep; // назва відділення
-    private LinkedHashMap<String, Integer> price = new LinkedHashMap<>(); // прайс цін
+// Клас відділення реалізує інтерфейс Serializable для збереження у файл
+class ServiceDepartment implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private String nameDep; 
+    private LinkedHashMap<String, Integer> priceList; 
 
-    ServiceDepartment() {
+    public ServiceDepartment(String name) {
+        this.nameDep = name;
+        this.priceList = new LinkedHashMap<>();
     }
 
-    ServiceDepartment(String name) {
-        name_dep = name;
+    public String getName() {
+        return nameDep;
     }
 
-    protected String getName() { // повернути назву відділення
-        return name_dep;
+    public void setName(String name) {
+        this.nameDep = name;
     }
 
-    protected void setNameDep(String name) { // встановити назву відділення
-        name_dep = name;
+    public void addService(String serviceName, int cost) {
+        priceList.put(serviceName, cost);
     }
 
-    protected void setPrice(String[] service, int[] cost) { // встановлення прайсу
-        price.clear();
-        if (service.length == cost.length) {
-            for (int i = 0; i < service.length; i++) {
-                price.put(service[i], cost[i]);
-            }
-        }
+    public void removeService(String serviceName) {
+        priceList.remove(serviceName);
     }
 
-    protected LinkedHashMap<String, Integer> getPrice() { // повертає прайс цін та послуг
-        return price;
+    public LinkedHashMap<String, Integer> getPriceList() {
+        return priceList;
     }
 }
 
-class AutoService extends ServiceDepartment {
-    private String name; // назва автосервісу
-    private int num_of_dep; // к-сть відділень
-    protected ArrayList<ServiceDepartment> departments = new ArrayList<>(); // список відділень, які є в автосервісі
-    private String client_name; // ім'я клієнта
-    private int choicedep; // вибір відділення
-    private int choiceservice; // вибір послуги
+// Клас автосервісу містить список відділень (Композиція)
+class AutoService implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private String name;
+    private ArrayList<ServiceDepartment> departments;
 
-    // Клієнт
-    AutoService() { // по замовчуванню (шаблон для клієнта)
-        departments.clear();
-        name = "АвтоПлюс";
-        String[] dep = { "Шиномонтаж", "Діагностика", "Моторист" };
-        num_of_dep = dep.length;
-        for (int i = 0; i < num_of_dep; i++) {
-            departments.add(new ServiceDepartment(dep[i]));
-        }
-
-        String[] shin = { "Балансування коліс", "Заміна шини", "Ремонт проколу" };
-        int[] shinP = { 200, 150, 300 };
-        departments.get(0).setPrice(shin, shinP);
-
-        String[] diag = { "Діагностика ходової", "Комп'ютерна діагностика", "Перевірка рідин" };
-        int[] diagP = { 400, 500, 100 };
-        departments.get(1).setPrice(diag, diagP);
-
-        String[] mot = { "Заміна масла", "Капітальний ремонт двигуна", "Заміна ГРМ" };
-        int[] motP = { 300, 15000, 2500 };
-        departments.get(2).setPrice(mot, motP);
+    public AutoService(String name) {
+        this.name = name;
+        this.departments = new ArrayList<>();
+        initializeDefaultData();
     }
 
-    // Менеджер
-    AutoService(String n, int num) {
-        name = n;
-        num_of_dep = num;
-    }
-
-    protected int getChoiceDep() {
-        return choicedep;
-    }
-
-    protected String getStrChoiceService() { // повертає обрану послугу
-        LinkedHashMap<String, Integer> price_dep = departments.get(choicedep - 1).getPrice();
-        int a = 0;
-        String str = "";
-        for (Map.Entry<String, Integer> entry : price_dep.entrySet()) {
-            if (a > choiceservice - 1)
-                break;
-            else {
-                str = entry.getKey();
-            }
-            a += 1;
-        }
-        return str;
-    }
-
-    protected int getPrChoiceService() { // повертає ціну на обрану послугу
-        LinkedHashMap<String, Integer> price_dep = departments.get(choicedep - 1).getPrice();
-        int a = 0, cost = 0;
-        for (Map.Entry<String, Integer> entry : price_dep.entrySet()) {
-            if (a > choiceservice - 1)
-                break;
-            else {
-                cost = entry.getValue();
-            }
-            a += 1;
-        }
-        return cost;
-    }
-
-    protected int getChoiceService() {
-        return choiceservice;
-    }
-
-    protected void setChoiceDep() { // вибір відділення
-        Scanner in = new Scanner(System.in, "UTF-8");
-        System.out.println("\nШановний(а) " + client_name + ", оберіть відділення:");
-        for (int i = 0; i < departments.size(); i++) {
-            System.out.println("  [" + (i + 1) + "] " + departments.get(i).getName());
-        }
-        System.out.print("Ваш вибір (введіть цифру): ");
-        int choice = in.nextInt();
-        choicedep = 0;
-        if (choice < 1 || choice > departments.size()) {
-            System.out.println("Некоректний вибір! Спробуйте ще раз.");
-            setChoiceDep();
-        } else {
-            choicedep = choice;
-        }
-    }
-
-    protected void setServiceChoice() { // вибір послуги
-        Scanner in = new Scanner(System.in, "UTF-8");
-        System.out.println("\nОберіть послугу:");
-        LinkedHashMap<String, Integer> price_dep = departments.get(choicedep - 1).getPrice();
-        int i = 1;
-        for (Map.Entry<String, Integer> entry : price_dep.entrySet()) {
-            System.out.println("  [" + i + "] " + entry.getKey() + " ........... " + entry.getValue() + " грн");
-            i++;
-        }
-        System.out.print("Ваш вибір (введіть цифру): ");
-        int choice = in.nextInt();
-        choiceservice = 0;
-        if (choice < 1 || choice > price_dep.size()) {
-            System.out.println("Некоректний вибір! Спробуйте ще раз.");
-            setServiceChoice();
-        } else {
-            choiceservice = choice;
-        }
-    }
-
-    protected void setNameClient(String name) {
-        client_name = name;
-    }
-
-    protected String getNameClient() {
-        return client_name;
-    }
-
-    protected int getNumofDep() {
-        return num_of_dep;
-    }
-
-    protected String getNameAuto() {
+    public String getName() {
         return name;
     }
 
-    protected void setService_Departments() { // створення нових відділень, відповідно їх к-сті
-        departments.clear();
-        System.out.println("\n===== НАЛАШТУВАННЯ ВІДДІЛЕНЬ =====");
-        for (int i = 0; i < num_of_dep; i++) {
-            departments.add(newDep(i + 1));
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public ArrayList<ServiceDepartment> getDepartments() {
+        return departments;
+    }
+
+    public void addDepartment(ServiceDepartment dep) {
+        departments.add(dep);
+    }
+
+    public void removeDepartment(int index) {
+        if (index >= 0 && index < departments.size()) {
+            departments.remove(index);
         }
     }
 
-    private ServiceDepartment newDep(int index) { // створити нове відділення
-        Scanner in = new Scanner(System.in, "UTF-8");
-        System.out.println("\n--- Відділення [" + index + "] ---");
-        System.out.print("Назва відділення: ");
-        String named = in.nextLine();
-        ServiceDepartment dep = new ServiceDepartment(named);
+    // Заповнення початковими даними, якщо файл не знайдено
+    private void initializeDefaultData() {
+        ServiceDepartment dep1 = new ServiceDepartment("Шиномонтаж");
+        dep1.addService("Балансування коліс", 200);
+        dep1.addService("Заміна шини", 150);
+        
+        ServiceDepartment dep2 = new ServiceDepartment("Діагностика");
+        dep2.addService("Комп'ютерна діагностика", 500);
+        dep2.addService("Діагностика ходової", 400);
 
-        System.out.print("Скільки послуг буде у відділенні '" + named + "'? ");
-        int count = in.nextInt();
-        in.nextLine();
-
-        String[] services = new String[count];
-        int[] prices = new int[count];
-
-        for (int i = 0; i < count; i++) {
-            System.out.print("   > Назва послуги " + (i + 1) + ": ");
-            services[i] = in.nextLine();
-            System.out.print("   > Ціна послуги " + (i + 1) + " (грн): ");
-            prices[i] = in.nextInt();
-            in.nextLine();
-        }
-
-        dep.setPrice(services, prices);
-        return dep;
+        departments.add(dep1);
+        departments.add(dep2);
     }
 }
 
-class Test {
-    protected static ArrayList<String> info_manager = new ArrayList<>(); // колекція для збереження внесених даних менеджера
-    protected static ArrayList<String> info_client = new ArrayList<>(); // колекція для збереження внесених даних клієнта
-    protected static AutoService auto = new AutoService(); // об'єкт для тестування
+class InterfaceManager {
+    private AutoService auto;
+    private Scanner scanner;
+    private final String DATA_FILE = "autoservice_data.ser";
 
-    protected static void testing_manager() { // режим менеджера
-        Scanner in = new Scanner(System.in, "UTF-8");
-        System.out.print("Введіть назву автосервісу: ");
-        String rez = in.nextLine();
-        System.out.print("Введіть к-сть відділень: ");
-        int num = in.nextInt();
-        auto = new AutoService(rez, num);
-        auto.setService_Departments(); // встановити відділення
-        InputDataManager(); // зберегти введені дані менеджера в колекції
-        Demonst(info_manager); // вивести збережені дані
+    public InterfaceManager() {
+        scanner = new Scanner(System.in, "UTF-8");
+        loadData();
     }
 
-    protected static void InputDataManager() { // заповнення колекції для ролі менеджера
-        info_manager.clear();
-        String[] info = { "Назва автосервісу: ", "\nКількість відділень: ", "\nСписок відділень та прайс: \n" };
-        info_manager.add(info[0]);
-        info_manager.add(auto.getNameAuto());
-        info_manager.add(info[1]);
-        info_manager.add(Integer.toString(auto.getNumofDep()));
-        info_manager.add(info[2]);
+    // Метод очищення консолі
+    private void clearConsole() {
+        try {
+            if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (Exception e) {
+            for (int i = 0; i < 30; i++) System.out.println(); // Альтернативне очищення
+        }
+    }
 
-        for (int i = 0; i < auto.departments.size(); i++) {
-            info_manager.add(" -> " + auto.departments.get(i).getName() + ":\n");
+    // Метод очікування дії користувача
+    private void pause() {
+        System.out.println("\n[Натисніть Enter для продовження...]");
+        scanner.nextLine();
+    }
 
-            LinkedHashMap<String, Integer> priceList = auto.departments.get(i).getPrice();
-            for (Map.Entry<String, Integer> entry : priceList.entrySet()) {
-                info_manager.add("    - " + entry.getKey() + " (" + entry.getValue() + " грн)\n");
+    // Метод для безпечного зчитування цілих чисел (обробка виключень)
+    private int readInt(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                int value = scanner.nextInt();
+                scanner.nextLine(); 
+                return value;
+            } catch (InputMismatchException e) {
+                System.out.println("Помилка: введіть коректне ціле число.");
+                scanner.nextLine(); 
             }
         }
     }
 
-    protected static void Demonst(ArrayList<String> info) { // виведення на екран заповненої колекції
-        System.out.println("\n-----Демонстрація введених данних-----");
-        System.out.println("------\t------\t------\t------\t------");
-        for (int i = 0; i < info.size(); i++) {
-            System.out.print(info.get(i));
+    public void start() {
+        boolean running = true;
+        while (running) {
+            clearConsole();
+            System.out.println("=== ГОЛОВНЕ МЕНЮ (" + auto.getName() + ") ===");
+            System.out.println("1. Режим 'Клієнт'");
+            System.out.println("2. Режим 'Менеджер'");
+            System.out.println("0. Вихід з програми");
+            
+            int choice = readInt("Оберіть дію: ");
+            switch (choice) {
+                case 1:
+                    clientMenu();
+                    break;
+                case 2:
+                    managerMenu();
+                    break;
+                case 0:
+                    saveData();
+                    System.out.println("Роботу завершено.");
+                    running = false;
+                    break;
+                default:
+                    System.out.println("Некоректний вибір.");
+                    pause();
+            }
         }
-        System.out.println("\n------\t------\t------\t------\t------");
     }
 
-    protected static void testing_client() { // режим клієнта
-        Scanner in = new Scanner(System.in, "UTF-8");
-        auto = new AutoService();
-        System.out.println("Вас вітає автосервіс " + auto.getNameAuto());
-        System.out.print("Назвіть будь ласка своє ім'я: ");
-        String name = in.nextLine();
-        auto.setNameClient(name);
-        auto.setChoiceDep();
-        auto.setServiceChoice();
-        System.out.println("\nДякуємо за замовлення! Формуємо чек...");
-        DataInputClient();
-        Demonst(info_client);
+    // ================= РЕЖИМ МЕНЕДЖЕРА =================
+    private void managerMenu() {
+        boolean inManager = true;
+        while (inManager) {
+            clearConsole();
+            System.out.println("--- ПАНЕЛЬ МЕНЕДЖЕРА ---");
+            System.out.println("1. Переглянути структуру автосервісу");
+            System.out.println("2. Додати нове відділення");
+            System.out.println("3. Видалити відділення");
+            System.out.println("4. Керувати послугами у відділенні");
+            System.out.println("5. Змінити назву автосервісу");
+            System.out.println("0. Повернутися до головного меню");
+
+            int choice = readInt("Ваш вибір: ");
+            switch (choice) {
+                case 1:
+                    clearConsole();
+                    displayStructure();
+                    pause();
+                    break;
+                case 2:
+                    addDepartmentFlow();
+                    break;
+                case 3:
+                    deleteDepartmentFlow();
+                    break;
+                case 4:
+                    manageServicesFlow();
+                    break;
+                case 5:
+                    System.out.print("Введіть нову назву автосервісу: ");
+                    auto.setName(scanner.nextLine());
+                    System.out.println("Назву успішно змінено.");
+                    pause();
+                    break;
+                case 0:
+                    inManager = false;
+                    break;
+                default:
+                    System.out.println("Некоректний вибір.");
+                    pause();
+            }
+        }
     }
 
-    protected static void DataInputClient() { // зберігає в колекції дані, введені клієнтом
-        info_client.clear();
-        String[] info = { "Ім'я клієнта: ", "\nВибір відділення: ", "\nВибір послуги: ", "\nСума розрахунку: " };
-        info_client.add(info[0]);
-        info_client.add(auto.getNameClient());
-        info_client.add(info[1]);
-        info_client.add((auto.departments.get(auto.getChoiceDep() - 1).getName()));
-        info_client.add(info[2]);
-        info_client.add(auto.getStrChoiceService());
-        info_client.add(info[3]);
-        info_client.add(Integer.toString(auto.getPrChoiceService()));
+    private void displayStructure() {
+        System.out.println("--- СТРУКТУРА: " + auto.getName() + " ---");
+        ArrayList<ServiceDepartment> deps = auto.getDepartments();
+        if (deps.isEmpty()) {
+            System.out.println("Відділення відсутні.");
+            return;
+        }
+        for (int i = 0; i < deps.size(); i++) {
+            System.out.println("[" + (i + 1) + "] Відділення: " + deps.get(i).getName());
+            for (Map.Entry<String, Integer> entry : deps.get(i).getPriceList().entrySet()) {
+                System.out.println("    - " + entry.getKey() + " (" + entry.getValue() + " грн)");
+            }
+        }
     }
 
-    protected static int role() { // вибір режиму
-        Scanner in = new Scanner(System.in);
-        System.out.println("Оберіть роль для входу:\n 1 - Клієнт  2 - Менеджер");
-        int role = in.nextInt(), rez = 0;
-        if (role != 1 && role != 2) {
-            System.out.println("Некоректний вибір!");
-            rez = role();
+    private void addDepartmentFlow() {
+        clearConsole();
+        System.out.print("Введіть назву нового відділення: ");
+        String name = scanner.nextLine();
+        auto.addDepartment(new ServiceDepartment(name));
+        System.out.println("Відділення додано.");
+        pause();
+    }
+
+    private void deleteDepartmentFlow() {
+        clearConsole();
+        displayStructure();
+        int index = readInt("\nВведіть номер відділення для видалення (0 для відміни): ") - 1;
+        if (index >= 0 && index < auto.getDepartments().size()) {
+            auto.removeDepartment(index);
+            System.out.println("Відділення видалено.");
+        }
+        pause();
+    }
+
+    private void manageServicesFlow() {
+        clearConsole();
+        displayStructure();
+        int depIndex = readInt("\nОберіть відділення для керування послугами (0 для відміни): ") - 1;
+        if (depIndex < 0 || depIndex >= auto.getDepartments().size()) return;
+
+        ServiceDepartment dep = auto.getDepartments().get(depIndex);
+        boolean managing = true;
+        while (managing) {
+            clearConsole();
+            System.out.println("--- Послуги відділення: " + dep.getName() + " ---");
+            List<String> sKeys = new ArrayList<>(dep.getPriceList().keySet());
+            
+            if (sKeys.isEmpty()) {
+                System.out.println("Послуги відсутні.");
+            } else {
+                for (int i = 0; i < sKeys.size(); i++) {
+                    System.out.println("[" + (i + 1) + "] " + sKeys.get(i) + " - " + dep.getPriceList().get(sKeys.get(i)) + " грн");
+                }
+            }
+
+            System.out.println("\n1. Додати послугу");
+            System.out.println("2. Видалити послугу");
+            System.out.println("3. Редагувати послугу");
+            System.out.println("0. Назад");
+
+            int choice = readInt("Ваш вибір: ");
+            switch (choice) {
+                case 1:
+                    System.out.print("Назва послуги: ");
+                    String sName = scanner.nextLine();
+                    int sPrice = readInt("Ціна (грн): ");
+                    dep.addService(sName, sPrice);
+                    System.out.println("Послугу додано.");
+                    pause();
+                    break;
+                case 2:
+                    if (sKeys.isEmpty()) {
+                        System.out.println("Немає послуг для видалення.");
+                        pause();
+                        break;
+                    }
+                    int delIndex = readInt("Введіть номер послуги для видалення: ") - 1;
+                    if (delIndex >= 0 && delIndex < sKeys.size()) {
+                        dep.removeService(sKeys.get(delIndex));
+                        System.out.println("Послугу видалено.");
+                    } else {
+                        System.out.println("Некоректний номер.");
+                    }
+                    pause();
+                    break;
+                case 3:
+                    if (sKeys.isEmpty()) {
+                        System.out.println("Немає послуг для редагування.");
+                        pause();
+                        break;
+                    }
+                    int editIndex = readInt("Введіть номер послуги для редагування: ") - 1;
+                    if (editIndex >= 0 && editIndex < sKeys.size()) {
+                        String oldName = sKeys.get(editIndex);
+                        System.out.print("Нова назва (натисніть Enter, щоб залишити '" + oldName + "'): ");
+                        String newName = scanner.nextLine();
+                        if (newName.trim().isEmpty()) {
+                            newName = oldName;
+                        }
+                        
+                        int newPrice = readInt("Нова ціна (грн): ");
+                        
+                        dep.removeService(oldName);
+                        dep.addService(newName, newPrice);
+                        System.out.println("Послугу успішно оновлено.");
+                    } else {
+                        System.out.println("Некоректний номер.");
+                    }
+                    pause();
+                    break;
+                case 0:
+                    managing = false;
+                    break;
+                default:
+                    System.out.println("Некоректний вибір.");
+                    pause();
+            }
+        }
+    }
+
+    // ================= РЕЖИМ КЛІЄНТА =================
+    private void clientMenu() {
+        clearConsole();
+        System.out.print("Введіть ваше ім'я: ");
+        String clientName = scanner.nextLine();
+
+        ArrayList<ServiceDepartment> deps = auto.getDepartments();
+        if (deps.isEmpty()) {
+            System.out.println("Вибачте, наразі немає доступних відділень.");
+            pause();
+            return;
+        }
+
+        // Кошик клієнта: Ключ - назва відділення, Значення - список обраних послуг
+        LinkedHashMap<String, List<String>> cart = new LinkedHashMap<>();
+        int totalSum = 0;
+        int itemsCount = 0;
+        boolean ordering = true;
+
+        while (ordering) {
+            clearConsole();
+            System.out.println("=== ВАШ КОШИК (" + itemsCount + " позицій на суму " + totalSum + " грн) ===");
+            if (cart.isEmpty()) {
+                System.out.println("  [Кошик порожній]");
+            } else {
+                for (Map.Entry<String, List<String>> entry : cart.entrySet()) {
+                    System.out.println("Відділення [" + entry.getKey() + "]:");
+                    for (String s : entry.getValue()) {
+                        System.out.println("  - " + s);
+                    }
+                }
+            }
+            System.out.println("=========================================");
+
+            System.out.println("\nОберіть відділення для замовлення послуги:");
+            for (int i = 0; i < deps.size(); i++) {
+                System.out.println("[" + (i + 1) + "] " + deps.get(i).getName());
+            }
+            System.out.println("\n[0] Завершити замовлення та отримати чек");
+
+            int depChoice = readInt("Ваш вибір: ");
+            
+            if (depChoice == 0) {
+                ordering = false; 
+                break;
+            }
+
+            depChoice -= 1; 
+            if (depChoice < 0 || depChoice >= deps.size()) {
+                System.out.println("Некоректний вибір.");
+                pause();
+                continue;
+            }
+
+            ServiceDepartment chosenDep = deps.get(depChoice);
+            LinkedHashMap<String, Integer> services = chosenDep.getPriceList();
+            
+            if (services.isEmpty()) {
+                System.out.println("У цьому відділенні наразі немає послуг.");
+                pause();
+                continue;
+            }
+
+            boolean choosingService = true;
+            while (choosingService) {
+                clearConsole();
+                System.out.println("--- Послуги відділення: " + chosenDep.getName() + " ---");
+                List<String> serviceKeys = new ArrayList<>(services.keySet());
+                for (int i = 0; i < serviceKeys.size(); i++) {
+                    System.out.println("[" + (i + 1) + "] " + serviceKeys.get(i) + " - " + services.get(serviceKeys.get(i)) + " грн");
+                }
+                System.out.println("\n[0] Повернутися до вибору відділень");
+
+                int sChoice = readInt("Ваш вибір: ") - 1;
+                
+                if (sChoice == -1) {
+                    choosingService = false; 
+                } else if (sChoice >= 0 && sChoice < serviceKeys.size()) {
+                    String selectedService = serviceKeys.get(sChoice);
+                    int price = services.get(selectedService);
+                    
+                    // Перевірка на дублікати
+                    List<String> depCart = cart.getOrDefault(chosenDep.getName(), new ArrayList<>());
+                    if (depCart.contains(selectedService)) {
+                        System.out.println("\nУВАГА! Ви вже додали цю послугу до кошика.");
+                        System.out.println("Ви впевнені, що хочете додати її ще раз? При додатковій однаковій послузі ДОДАТКОВО ВИ НІЧОГО НЕ ОТРИМАЄТЕ.");
+                        int confirm = readInt("1 - Так, додати / 0 - Скасувати: ");
+                        if (confirm != 1) {
+                            System.out.println("Додавання скасовано.");
+                            pause();
+                            continue; 
+                        }
+                    }
+                    
+                    // Додавання до кошика
+                    depCart.add(selectedService);
+                    cart.put(chosenDep.getName(), depCart);
+                    totalSum += price;
+                    itemsCount++;
+                    
+                    System.out.println("\nПослугу '" + selectedService + "' успішно додано до замовлення!");
+                    pause();
+                    choosingService = false; 
+                } else {
+                    System.out.println("Некоректний вибір послуги.");
+                    pause();
+                }
+            }
+        }
+
+        if (!cart.isEmpty()) {
+            clearConsole();
+            generateReceipt(clientName, cart, totalSum);
         } else {
-            rez = role;
+            System.out.println("\nВи нічого не замовили. Скасування.");
         }
-        return rez;
+        pause();
+    }
+
+    // Метод запису багатопозиційного чека у консоль та файл
+    private void generateReceipt(String client, LinkedHashMap<String, List<String>> cart, int total) {
+        StringBuilder receipt = new StringBuilder();
+        receipt.append("=======================\n");
+        receipt.append("   ЧЕК АВТОСЕРВІСУ     \n");
+        receipt.append("=======================\n");
+        receipt.append("Клієнт: ").append(client).append("\n\n");
+        receipt.append("Замовлені послуги:\n");
+        
+        for (Map.Entry<String, List<String>> entry : cart.entrySet()) {
+            receipt.append("Відділення [").append(entry.getKey()).append("]:\n");
+            for (String s : entry.getValue()) {
+                receipt.append("  - ").append(s).append("\n");
+            }
+        }
+        
+        receipt.append("-----------------------\n");
+        receipt.append("ДО СПЛАТИ: ").append(total).append(" грн\n");
+        receipt.append("=======================\n");
+
+        System.out.print(receipt.toString());
+        
+        try (FileWriter writer = new FileWriter("receipt_" + client + ".txt", true)) {
+            writer.write(receipt.toString() + "\n");
+            System.out.println("\n(Чек успішно збережено у файл receipt_" + client + ".txt)");
+        } catch (IOException e) {
+            System.out.println("\nПомилка при збереженні чека у файл: " + e.getMessage());
+        }
+    }
+
+    // ================= СЕРІАЛІЗАЦІЯ ДАНИХ =================
+    private void saveData() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(DATA_FILE))) {
+            oos.writeObject(auto);
+            System.out.println("Дані автосервісу успішно збережено у базу.");
+        } catch (IOException e) {
+            System.out.println("Помилка при збереженні даних: " + e.getMessage());
+        }
+    }
+
+    private void loadData() {
+        File file = new File(DATA_FILE);
+        if (file.exists()) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+                auto = (AutoService) ois.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                System.out.println("Помилка завантаження даних. Створено нову базу.");
+                auto = new AutoService("АвтоПлюс");
+            }
+        } else {
+            auto = new AutoService("АвтоПлюс");
+        }
     }
 }
 
 public class Kurs_Auto {
     public static void main(String[] args) {
-        int user = Test.role(); // вибір режиму користувача
-        if (user == 2) {
-            Test.testing_manager();
-        } else {
-            Test.testing_client();
-        }
+        InterfaceManager app = new InterfaceManager();
+        app.start();
     }
 }
