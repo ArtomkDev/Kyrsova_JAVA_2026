@@ -3,7 +3,11 @@ package kurs_auto;
 import java.io.*;
 import java.util.*;
 
-// Клас відділення реалізує інтерфейс Serializable для збереження у файл
+/**
+ * Клас відділення автосервісу.
+ * Зберігає назву відділення та колекцію послуг із їхніми цінами.
+ * Реалізує інтерфейс Serializable для можливості збереження об'єктів у файл.
+ */
 class ServiceDepartment implements Serializable {
     private static final long serialVersionUID = 1L;
     private String nameDep; 
@@ -22,6 +26,11 @@ class ServiceDepartment implements Serializable {
         this.nameDep = name;
     }
 
+    /**
+     * Додає нову послугу або оновлює ціну існуючої.
+     * @param serviceName Назва послуги
+     * @param cost Вартість послуги
+     */
     public void addService(String serviceName, int cost) {
         priceList.put(serviceName, cost);
     }
@@ -35,7 +44,10 @@ class ServiceDepartment implements Serializable {
     }
 }
 
-// Клас автосервісу містить список відділень (Композиція)
+/**
+ * Головний клас автосервісу. 
+ * Демонструє відношення "Композиція", оскільки містить список відділень.
+ */
 class AutoService implements Serializable {
     private static final long serialVersionUID = 1L;
     private String name;
@@ -69,7 +81,9 @@ class AutoService implements Serializable {
         }
     }
 
-    // Заповнення початковими даними, якщо файл не знайдено
+    /**
+     * Заповнення бази початковими даними на випадок, якщо файл збереження відсутній.
+     */
     private void initializeDefaultData() {
         ServiceDepartment dep1 = new ServiceDepartment("Шиномонтаж");
         dep1.addService("Балансування коліс", 200);
@@ -84,19 +98,46 @@ class AutoService implements Serializable {
     }
 }
 
-// Допоміжний клас для зберігання позиції в кошику клієнта
+/**
+ * Допоміжний клас для зберігання позиції в кошику клієнта.
+ * Повністю інкапсульований для дотримання принципів ООП.
+ */
 class CartItem {
-    String serviceName;
-    int unitPrice;
-    int quantity;
+    private String serviceName;
+    private int unitPrice;
+    private int quantity;
 
     public CartItem(String serviceName, int unitPrice) {
         this.serviceName = serviceName;
         this.unitPrice = unitPrice;
         this.quantity = 1;
     }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public int getUnitPrice() {
+        return unitPrice;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void addQuantity(int amount) {
+        this.quantity += amount;
+    }
+    
+    public void reduceQuantity(int amount) {
+        this.quantity -= amount;
+    }
 }
 
+/**
+ * Клас для управління взаємодією з користувачем через консоль.
+ * Реалізує логіку меню, обробку винятків та роботу з файлами.
+ */
 class InterfaceManager {
     private AutoService auto;
     private Scanner scanner;
@@ -107,7 +148,9 @@ class InterfaceManager {
         loadData();
     }
 
-    // Метод очищення консолі
+    /**
+     * Метод очищення консолі для зручності відображення інтерфейсу.
+     */
     private void clearConsole() {
         try {
             if (System.getProperty("os.name").toLowerCase().contains("windows")) {
@@ -121,13 +164,17 @@ class InterfaceManager {
         }
     }
 
-    // Метод очікування дії користувача
     private void pause() {
         System.out.println("\n[Натисніть Enter для продовження...]");
         scanner.nextLine();
     }
 
-    // Метод для безпечного зчитування цілих чисел (обробка виключень)
+    /**
+     * Метод для безпечного зчитування цілих чисел.
+     * Містить блок try-catch для обробки винятку InputMismatchException.
+     * @param prompt Текст-підказка для користувача
+     * @return Введене ціле число
+     */
     private int readInt(String prompt) {
         while (true) {
             System.out.print(prompt);
@@ -298,7 +345,7 @@ class InterfaceManager {
                                 System.out.println("Послугу оновлено.");
                                 adding = false;
                             } else if (conflictChoice == 2) {
-                                continue; // Повертаємось на початок циклу введення назви
+                                continue; 
                             } else {
                                 System.out.println("Операцію скасовано.");
                                 adding = false;
@@ -342,7 +389,6 @@ class InterfaceManager {
                             newName = oldName;
                         }
                         
-                        // Захист від перезапису іншої існуючої послуги при редагуванні
                         if (!newName.equals(oldName) && dep.getPriceList().containsKey(newName)) {
                             System.out.println("\nПомилка: послуга з назвою '" + newName + "' вже існує. Використовуйте інші назви для різних послуг.");
                             System.out.println("Редагування скасовано.");
@@ -387,17 +433,15 @@ class InterfaceManager {
         while (ordering) {
             clearConsole();
             
-            // Підрахунок загальних значень кошика для відображення
             int totalSum = 0;
             int itemsCount = 0;
             for (LinkedHashMap<String, CartItem> depCart : cart.values()) {
                 for (CartItem item : depCart.values()) {
-                    totalSum += (item.unitPrice * item.quantity);
-                    itemsCount += item.quantity;
+                    totalSum += (item.getUnitPrice() * item.getQuantity());
+                    itemsCount += item.getQuantity();
                 }
             }
 
-            // Вивід кошика
             System.out.println("=== ВАШ КОШИК (" + itemsCount + " позицій на суму " + totalSum + " грн) ===");
             if (cart.isEmpty()) {
                 System.out.println("  [Кошик порожній]");
@@ -405,11 +449,11 @@ class InterfaceManager {
                 for (Map.Entry<String, LinkedHashMap<String, CartItem>> entry : cart.entrySet()) {
                     System.out.println("Відділення [" + entry.getKey() + "]:");
                     for (CartItem item : entry.getValue().values()) {
-                        int rowTotal = item.unitPrice * item.quantity;
-                        if (item.quantity > 1) {
-                            System.out.println("  - " + item.serviceName + " x" + item.quantity + " ........... " + rowTotal + " грн (по " + item.unitPrice + " грн)");
+                        int rowTotal = item.getUnitPrice() * item.getQuantity();
+                        if (item.getQuantity() > 1) {
+                            System.out.println("  - " + item.getServiceName() + " x" + item.getQuantity() + " ........... " + rowTotal + " грн (по " + item.getUnitPrice() + " грн)");
                         } else {
-                            System.out.println("  - " + item.serviceName + " ........... " + rowTotal + " грн");
+                            System.out.println("  - " + item.getServiceName() + " ........... " + rowTotal + " грн");
                         }
                     }
                 }
@@ -444,7 +488,7 @@ class InterfaceManager {
             int finalTotal = 0;
             for (LinkedHashMap<String, CartItem> depCart : cart.values()) {
                 for (CartItem item : depCart.values()) {
-                    finalTotal += (item.unitPrice * item.quantity);
+                    finalTotal += (item.getUnitPrice() * item.getQuantity());
                 }
             }
             generateReceipt(clientName, cart, finalTotal);
@@ -454,7 +498,6 @@ class InterfaceManager {
         pause();
     }
 
-    // Підменю додавання послуги до кошика
     private void addServiceToCartFlow(ArrayList<ServiceDepartment> deps, LinkedHashMap<String, LinkedHashMap<String, CartItem>> cart) {
         clearConsole();
         System.out.println("Оберіть відділення:");
@@ -498,7 +541,7 @@ class InterfaceManager {
             LinkedHashMap<String, CartItem> depCart = cart.getOrDefault(chosenDep.getName(), new LinkedHashMap<>());
             
             if (depCart.containsKey(selectedService)) {
-                depCart.get(selectedService).quantity++;
+                depCart.get(selectedService).addQuantity(1);
             } else {
                 depCart.put(selectedService, new CartItem(selectedService, price));
             }
@@ -512,7 +555,6 @@ class InterfaceManager {
         }
     }
 
-    // Підменю видалення послуги з кошика
     private void removeServiceFromCartFlow(LinkedHashMap<String, LinkedHashMap<String, CartItem>> cart) {
         if (cart.isEmpty()) {
             System.out.println("Кошик порожній, видаляти нічого.");
@@ -532,7 +574,7 @@ class InterfaceManager {
             for (CartItem item : depEntry.getValue().values()) {
                 flatDepNames.add(depEntry.getKey());
                 flatItems.add(item);
-                System.out.println("  [" + idx + "] " + item.serviceName + " x" + item.quantity);
+                System.out.println("  [" + idx + "] " + item.getServiceName() + " x" + item.getQuantity());
                 idx++;
             }
         }
@@ -547,23 +589,22 @@ class InterfaceManager {
             String depName = flatDepNames.get(delChoice);
             LinkedHashMap<String, CartItem> depCart = cart.get(depName);
             
-            if (itemToDel.quantity > 1) {
-                int qToDel = readInt("У вас " + itemToDel.quantity + " шт. цієї послуги. Скільки штук видалити? ");
-                if (qToDel >= itemToDel.quantity) {
-                    depCart.remove(itemToDel.serviceName);
+            if (itemToDel.getQuantity() > 1) {
+                int qToDel = readInt("У вас " + itemToDel.getQuantity() + " шт. цієї послуги. Скільки штук видалити? ");
+                if (qToDel >= itemToDel.getQuantity()) {
+                    depCart.remove(itemToDel.getServiceName());
                     System.out.println("Позицію повністю видалено.");
                 } else if (qToDel > 0) {
-                    itemToDel.quantity -= qToDel;
+                    itemToDel.reduceQuantity(qToDel);
                     System.out.println("Кількість зменшено на " + qToDel + " шт.");
                 } else {
                     System.out.println("Скасовано.");
                 }
             } else {
-                depCart.remove(itemToDel.serviceName);
+                depCart.remove(itemToDel.getServiceName());
                 System.out.println("Позицію видалено.");
             }
             
-            // Якщо відділення стало порожнім - видаляємо його з кошика
             if (depCart.isEmpty()) {
                 cart.remove(depName);
             }
@@ -573,7 +614,10 @@ class InterfaceManager {
         pause();
     }
 
-    // Метод запису багатопозиційного чека у консоль та файл
+    /**
+     * Формує фінальний чек та записує його у текстовий файл.
+     * Відповідає вимогам системи вводу-виводу.
+     */
     private void generateReceipt(String client, LinkedHashMap<String, LinkedHashMap<String, CartItem>> cart, int total) {
         StringBuilder receipt = new StringBuilder();
         receipt.append("=========================================\n");
@@ -585,11 +629,11 @@ class InterfaceManager {
         for (Map.Entry<String, LinkedHashMap<String, CartItem>> entry : cart.entrySet()) {
             receipt.append("Відділення [").append(entry.getKey()).append("]:\n");
             for (CartItem item : entry.getValue().values()) {
-                int rowTotal = item.unitPrice * item.quantity;
-                if (item.quantity > 1) {
-                    receipt.append(String.format("  - %-25s x%-2d ...... %4d грн (по %d грн)\n", item.serviceName, item.quantity, rowTotal, item.unitPrice));
+                int rowTotal = item.getUnitPrice() * item.getQuantity();
+                if (item.getQuantity() > 1) {
+                    receipt.append(String.format("  - %-25s x%-2d ...... %4d грн (по %d грн)\n", item.getServiceName(), item.getQuantity(), rowTotal, item.getUnitPrice()));
                 } else {
-                    receipt.append(String.format("  - %-25s    ...... %4d грн\n", item.serviceName, rowTotal));
+                    receipt.append(String.format("  - %-25s    ...... %4d грн\n", item.getServiceName(), rowTotal));
                 }
             }
         }
@@ -609,6 +653,10 @@ class InterfaceManager {
     }
 
     // ================= СЕРІАЛІЗАЦІЯ ДАНИХ =================
+    
+    /**
+     * Зберігає стан об'єкта AutoService у двійковий файл (Серіалізація).
+     */
     private void saveData() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(DATA_FILE))) {
             oos.writeObject(auto);
@@ -618,6 +666,9 @@ class InterfaceManager {
         }
     }
 
+    /**
+     * Відновлює стан об'єкта AutoService з двійкового файлу (Десеріалізація).
+     */
     private void loadData() {
         File file = new File(DATA_FILE);
         if (file.exists()) {
